@@ -2,6 +2,8 @@
 
 // Suite de teste do formulário CAC TAT
 describe('Central de Atendimento ao Cliente TAT', function() {
+    const THREE_SECONDS_IN_MS = 3000;
+
     // Para cada testes, antes de executa-lo, será feito o visit
     beforeEach(() => {
         cy.visit('./src/index.html')
@@ -16,11 +18,14 @@ describe('Central de Atendimento ao Cliente TAT', function() {
     // 2º Caso de teste
     // it.only('', () => {}); - Utilizado quando estamos escrevendo um novo caso de teste e quero executar somente ele.
     it('2 - Preenche os campos obrigatórios e envia o formulário', () => {
+        cy.clock() // "congela" o relógio do navegador
+
         cy.get('#firstName').type('Vinicius')
         cy.get('#lastName').type('Tobias')
         cy.get('#email').type('vinicius.felipe@gmail.com')
 
-        const longText = "Teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, "
+        // const longText = "Teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, "
+        const longText = Cypress._.repeat('Teste, ', 50) // Lodash: Ira repetir a string "Teste, " 50 vezes.
         cy.get('#open-text-area').type(longText, { delay: 0 }) // Delay = 0 é praticamente instantâneo (default = 10ms)
 
         // cy.get('.button').click() // (buscando pela classe "button")
@@ -29,10 +34,17 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
         // Verifica se a mensagem de sucesso foi exibida
         cy.get('.success').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS) // Avança 3000 milesegundos no tempo para poupar tempo nos testes
+
+        // Verifica se mensagem já desapareceu
+        cy.get('.success').should('not.be.visible')
     });
     
     // 3º Caso de teste
     it('3 - Exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', () => {
+        cy.clock() // "congela" o relógio do navegador
+        
         cy.get('#firstName').type('Vinicius')
         cy.get('#lastName').type('Tobias')
         cy.get('#email').type('vinicius.felipe@gmail,com')
@@ -42,6 +54,11 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
         // Verifica se a mensagem de erro foi exibida
         cy.get('.error').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS) // Avança 3000 milesegundos no tempo para poupar tempo nos testes
+
+        // Verifica se mensagem já desapareceu
+        cy.get('.error').should('not.be.visible')
     });
 
     // 4º Caso de teste
@@ -53,6 +70,8 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     // 5º Caso de teste
     it('5 - Exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', () => {
+        cy.clock() // "congela" o relógio do navegador
+        
         cy.get('#firstName').type('Vinicius')
         cy.get('#lastName').type('Tobias')
         cy.get('#email').type('vinicius.felipe@gmail.com')
@@ -62,6 +81,11 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.get('button[type="submit"').click()
 
         cy.get('.error').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS) // Avança 3000 milesegundos no tempo para poupar tempo nos testes
+
+        // Verifica se mensagem já desapareceu
+        cy.get('.error').should('not.be.visible')
     });
 
     // 6º Caso de teste
@@ -93,23 +117,46 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     // 7º Caso de teste
     it('7 - Exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios', () => {
+        cy.clock() // "congela" o relógio do navegador
+        
         cy.get('button[type="submit"').click()
         cy.get('.error').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS) // Avança 3000 milesegundos no tempo para poupar tempo nos testes
+
+        // Verifica se mensagem já desapareceu
+        cy.get('.error').should('not.be.visible')
     });
 
     // 8º Caso de teste
     it('8 - Envia o formuário com sucesso usando um comando customizado', () => {
+        cy.clock() // "congela" o relógio do navegador
+
         cy.fillMandatoryFieldsAndSubmit()
         cy.get('.success').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS) // Avança 3000 milesegundos no tempo para poupar tempo nos testes
+
+        // Verifica se mensagem já desapareceu
+        cy.get('.success').should('not.be.visible')
     });
 
     // 9º Caso de teste
     it('9 - Fazendo login com variáveis de ambiente', () => {
+        cy.clock() // "congela" o relógio do navegador
+
         cy.get('#firstName').type(Cypress.env('primeiro_nome'))
         cy.get('#lastName').type(Cypress.env('sobrenome'))
         cy.get('#email').type('vinicius.felipe@gmail.com')
         cy.get('#open-text-area').type('Teste')
         cy.get('button[type="submit"').click()
+
+        cy.get('.success').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS) // Avança 3000 milesegundos no tempo para poupar tempo nos testes
+
+        // Verifica se mensagem já desapareceu
+        cy.get('.success').should('not.be.visible')
     });
 
     // 10º Caso de teste
@@ -207,4 +254,47 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
         cy.contains('CAC TAT - Política de privacidade').should('be.visible')
     });
+
+    // 21º Caso de teste
+    it('21 - Exibe e esconde as mensagens de sucesso e erro usando o .invoke', () => {
+        cy.get('.success')
+          .should('not.be.visible')
+          .invoke('show')
+          .should('be.visible')
+            .and('contain', 'Mensagem enviada com sucesso.')
+          .invoke('hide')
+          .should('not.be.visible')
+
+        cy.get('.error')
+          .should('not.be.visible')
+          .invoke('show')
+          .should('be.visible')
+            .and('contain', 'Valide os campos obrigatórios!')
+          .invoke('hide')
+          .should('not.be.visible')
+      })
+
+      // 22º Caso de teste
+      it('22 - Preenche a area de texto usando o comando invoke', () => {
+        const longText = Cypress._.repeat('Teste, ', 50)
+
+        cy.get('#open-text-area')
+            .invoke('val', longText) // Simula o CTRL+ V
+            .should('have.value', longText)
+
+      });
+
+      // 23º Caso de teste
+      it('23 - Faz uma requisição HTTP', () => {
+        cy.request({
+            method: 'GET',
+            url: 'https://cac-tat.s3.eu-central-1.amazonaws.com/index.html',
+        })
+        .should((response) => {
+            const { status, statusText, body } = response;
+            expect(status).equal(200)
+            expect(statusText).equal('OK')
+            expect(body).include('CAC TAT')
+        })
+      });
   })
